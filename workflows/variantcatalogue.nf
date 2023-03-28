@@ -37,12 +37,23 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
+
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
 
+//
+// For the mapping subworkflow
+//
 
 include { Picard_CollectAlignmentSummaryMetrics } from '../modules/local/Picard_CollectAlignmentSummaryMetrics'
 include { Picard_QualityScoreDistribution       } from '../modules/local/Picard_QualityScoreDistribution'
 
+
+//
+// For the SNV/indel subworkflow
+//
+
+include { Hail_sample_QC  } from '../modules/local/Hail_sample_QC'
+include { Hail_variant_QC } from '../modules/local/Hail_variant_QC'
 
 
 /*
@@ -54,8 +65,7 @@ include { Picard_QualityScoreDistribution       } from '../modules/local/Picard_
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC                      } from '../modules/nf-core/fastqc/main'
-include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
+
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 
 //
@@ -69,6 +79,19 @@ include { TRIMMOMATIC              } from '../modules/nf-core/trimmomatic/main'
 
 include { MOSDEPTH                 } from '../modules/nf-core/mosdepth/main'
 include { PICARD_COLLECTWGSMETRICS } from '../modules/nf-core/picard/collectwgsmetrics/main'
+include { FASTQC                   } from '../modules/nf-core/fastqc/main'
+include { MULTIQC                  } from '../modules/nf-core/multiqc/main'
+
+//
+// For the SNV/indel subworkflow
+//
+
+include { DEEPVARIANT       } from '../modules/nf-core/deepvariant/main' 
+include { GLNEXUS           } from '../modules/nf-core/glnexus/main'
+include { BCFTOOLS_NORM     } from '../modules/nf-core/bcftools/norm/main'
+include { BCFTOOLS_ANNOTATE } from '../modules/nf-core/bcftools/annotate/main'
+include { ENSEMBLVEP_VEP    } from '../modules/nf-core/ensemblvep/vep/main'
+
 
 
 /*
@@ -124,10 +147,11 @@ workflow VARIANTCATALOGUE {
     )
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
+
 //    MOSDEPTH ( BWA_MEM.out.bam
-//					.join(SAMTOOLS_INDEX.out.bai)
-//					.join([]),
-//				[[:],[]]) 
+//			.join(SAMTOOLS_INDEX.out.bai)
+//			.join (dummy)
+//		,[[:],[]]) 
 //    ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
 
     PICARD_COLLECTWGSMETRICS ( BWA_MEM.out.bam
@@ -140,6 +164,15 @@ workflow VARIANTCATALOGUE {
 
     Picard_CollectAlignmentSummaryMetrics ( BWA_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai))
     Picard_QualityScoreDistribution       ( BWA_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai))
+
+
+    //
+    // Subworkflow : SNV?indel
+    //
+
+    DEEPVARIANT
+    GLNEXUS
+
 
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
