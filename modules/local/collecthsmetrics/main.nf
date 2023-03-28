@@ -12,7 +12,7 @@ process PICARD_COLLECTHSMETRICS {
     tuple val(meta2), path(fasta)
     tuple val(meta3), path(fai)
     path bait_intervals
-    path target_intervals
+//    path target_intervals
 
     output:
     tuple val(meta), path("*_metrics")  , emit: metrics
@@ -39,7 +39,7 @@ process PICARD_COLLECTHSMETRICS {
         $args \\
         $reference \\
         --BAIT_INTERVALS $bait_intervals \\
-        --TARGET_INTERVALS $target_intervals \\
+        --TARGET_INTERVALS $bait_intervals \\
         --INPUT $bam \\
         --OUTPUT ${prefix}.CollectHsMetrics.coverage_metrics
 
