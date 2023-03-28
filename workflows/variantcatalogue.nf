@@ -39,6 +39,12 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 //
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
 
+
+include { Picard_CollectAlignmentSummaryMetrics } from '../modules/local/Picard_CollectAlignmentSummaryMetrics'
+include { Picard_QualityScoreDistribution       } from '../modules/lcoal/Picard_QualityScoreDistribution'
+
+
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -51,6 +57,22 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 include { FASTQC                      } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
+
+//
+// MODULE: Installed directly from nf-core/modules
+// For the mapping subworkflow
+//
+
+include { BWA_INDEX                } from '../modules/nf-core/bwa/index/main'
+include { BWA_MEM                  } from '../modules/nf-core/bwa/mem/main'
+include { SAMTOOLS_INDEX           } from '../modules/nf-core/samtools/index/main'
+include { TRIMMOMATIC              } from '../modules/nf-core/trimmomatic/main'
+
+include { FASTQC                   } from '../modules/nf-core/fastqc/main'
+include { MOSDEPTH                 } from '../modules/nf-core/mosdepth/main'
+include { PICARD_COLLECTWGSMETRICS } from '../modules/nf-core/picard/collectwgsmetrics/main'
+include { MULTIQC                  } from '../modules/nf-core/multiqc/main'
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,17 +95,42 @@ workflow VARIANTCATALOGUE {
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
 
+
+    //
+    // Subworkflow : Mapping
+    //
+
+    BWA_INDEX      (INPUT_CHECK.out.reference )
+    TRIMMOMATIC    (INPUT_CHECK.out.reads )
+    BWA_MEM        (TRIMMOMATIC.out.trimmed_reads, BWA_INDEX.out.index, true )
+    SAMTOOLS_INDEX (BWA_MEM.out.bam ) 
+
+    FASTQC   (INPUT_CHECK.out.reads )
+    MOSDEPTH ( BWA_MEM.out.bam
+					.join(SAMTOOLS_INDEX.out.bai)
+					.join([]),
+				[[:],[]]) 
+    PICARD_COLLECTWGSMETRICS ( BWA_MEM.out.bam
+                                        .join(SAMTOOLS_INDEX.out.bai),
+				INPUT_CHECK.out.reference,
+				INPUT_CHECK.out.reference_index,
+				[]
+			)
+    Picard_CollectAlignmentSummaryMetrics(align_sort_output_bam.out.samples_bam, align_sort_output_bam.out.samples_bam_index, assembly, batch, run)
+    Picard_QualityScoreDistribution(align_sort_output_bam.out.samples_bam, align_sort_output_bam.out.samples_bam_index, assembly, batch, run)
+
+
     //
     // MODULE: Run FastQC
     //
-    FASTQC (
-        INPUT_CHECK.out.reads
-    )
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+//    FASTQC (
+//        INPUT_CHECK.out.reads
+//    )
+//    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
-    CUSTOM_DUMPSOFTWAREVERSIONS (
-        ch_versions.unique().collectFile(name: 'collated_versions.yml')
-    )
+ //   CUSTOM_DUMPSOFTWAREVERSIONS (
+//        ch_versions.unique().collectFile(name: 'collated_versions.yml')
+//    )
 
     //
     // MODULE: MultiQC
@@ -99,6 +146,11 @@ workflow VARIANTCATALOGUE {
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(MOSDEPTH.out.global_txt.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(PICARD_COLLECTWGSMETRICS.out.metrics.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(Picard_CollectAlignmentSummaryMetrics.out.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(Picard_QualityScoreDistribution.out.collect{it[1]}.ifEmpty([]))
+
 
     MULTIQC (
         ch_multiqc_files.collect(),
