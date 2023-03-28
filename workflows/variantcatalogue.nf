@@ -113,7 +113,7 @@ workflow VARIANTCATALOGUE {
     TRIMMOMATIC    (INPUT_CHECK.out.reads )
     ch_versions = ch_versions.mix(TRIMMOMATIC.out.versions.first())
 
-    BWA_MEM        (TRIMMOMATIC.out.trimmed_reads, reference, true )
+    BWA_MEM        (TRIMMOMATIC.out.trimmed_reads, BWA_INDEX.out.index, true )
     ch_versions = ch_versions.mix(BWA_MEM.out.versions.first())
 
     SAMTOOLS_INDEX (BWA_MEM.out.bam ) 

@@ -1,3 +1,0 @@
-task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
-2	66/7f9c8f	34601	NFCORE_VARIANTCATALOGUE:VARIANTCATALOGUE:INPUT_CHECK:SAMPLESHEET_CHECK (samplesheet.csv)	COMPLETED	0	2023-03-28 02:51:59.485	1.8s	1s	51.3%	10.5 MB	32.3 MB	0	0
-1	b5/55781c	34854	NFCORE_VARIANTCATALOGUE:VARIANTCATALOGUE:BWA_INDEX (hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa.gz)	COMPLETED	0	2023-03-28 02:52:00.487	1.8s	1s	63.1%	7 MB	25.1 MB	0	0

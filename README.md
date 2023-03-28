@@ -24,8 +24,29 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 <!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
 
-1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+A. Mapping subworkflow
+1. Index the reference genome ([`BWA index`]())
+2. Trim the reads ([`Trimmomatic`]())
+3. Align the reads ([`BWA mem`]())
+4. Index the aligned bam files ([`Samtools index`]())
+
+5. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+6. Coverage calculation ([`Mosdepth`]())
+7. Alignemnt QC ([`Picard Collect WGS metrics`]())
+8. Alignemnt QC ([`Picard Collect Alignment Summary Metrics`]())
+9. Alignemnt QC ([`Quality Scores distribution`]())
+10. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+
+B. SNV/Indel subworkflow
+1. Variant calling ([`DeepVariant`]())
+2. Joint calling ([`GLnexus`]())
+3. Split multi-allelic variants ([``]())
+4. Redefine varaints ID ([``]())
+5. Index vcf file ([``]())
+6. Sample QC and sex inference ([`Hail`]())
+7. Variant QC and frequency calculation ([`Hail`]())
+8. Annotation ([`VEP`]())
+
 
 ## Quick Start
 
@@ -33,10 +54,12 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/) (you can follow [this tutorial](https://singularity-tutorial.github.io/01-installation/)), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility _(you can use [`Conda`](https://conda.io/miniconda.html) both to install Nextflow itself and also to manage software within pipelines. Please only use it within pipelines as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_.
 
-3. Download the pipeline and test it on a minimal dataset with a single command:
+3. Download the pipeline and test it on a minimal dataset with a simple three lines command:
 
-   ```bash
-   nextflow run nf-core/variantcatalogue -profile test,YOURPROFILE --outdir <OUTDIR>
+   ```
+   wget https://github.com/scorreard/Variant_catalogue_pipeline/blob/main/testdata/reference/hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa.gz?raw=true
+   gzip -d hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa.gz > hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa
+   bash nextflow run nf-core/variantcatalogue -profile test,YOURPROFILE --outdir <OUTDIR>
    ```
 
    Note that some form of configuration will be needed so that Nextflow knows how to fetch the required software. This is usually done in the form of a config profile (`YOURPROFILE` in the example command above). You can chain multiple config profiles in a comma-separated string.

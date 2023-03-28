@@ -6,3 +6,6 @@ results/
 testing/
 testing*
 *.pyc
+hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa
+test_results/*
+test_results/
