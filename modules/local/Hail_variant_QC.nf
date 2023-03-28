@@ -18,6 +18,6 @@ process Hail_variant_QC {
 	script:
 	"""
 	mkdir -p $params.tmp_dir
-        python ${projectDir}/modules/Hail_variant_QC.py $vcf_sample_filtered $sample_sex_file $params.tmp_dir $params.assembly
+        python ${projectDir}/modules/Hail_variant_QC.py $vcf_sample_filtered $sample_sex_file $params.tmp_dir $params.genome
 	"""
 }

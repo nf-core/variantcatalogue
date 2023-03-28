@@ -176,7 +176,7 @@ workflow VARIANTCATALOGUE {
             }
             .set { ch_deepvar_in }
 
-    DEEPVARIANT (ch_deepvar_in	)
+    DEEPVARIANT (ch_deepvar_in, file(params.reference), file(params.reference_index))
 //    GLNEXUS       (DEEPVARIANT.out.gvcf.collect())
 //    BCFTOOLS_NORM (GLNEXUS.out.bcf.join(INDEX??))
 //    BCFTOOLS_ANNOTATE (BCFTOOLS_NORM.out.vcf)

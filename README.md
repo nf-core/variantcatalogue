@@ -16,36 +16,34 @@
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
 
-<!-- TODO nf-core: Add full-sized test dataset and amend the paragraph below if applicable -->
-
-On release, automated continuous integration tests run the pipeline on a full-sized dataset on the AWS cloud infrastructure. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources.The results obtained from the full-sized test can be viewed on the [nf-core website](https://nf-co.re/variantcatalogue/results).
-
 ## Pipeline summary
 
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
-
 A. Mapping subworkflow
-1. Index the reference genome ([`BWA index`]())
-2. Trim the reads ([`Trimmomatic`]())
-3. Align the reads ([`BWA mem`]())
-4. Index the aligned bam files ([`Samtools index`]())
-
+1. Index the reference genome ([`BWA index`](https://bio-bwa.sourceforge.net/bwa.shtml))
+2. Trim the reads ([`Trimmomatic`](http://www.usadellab.org/cms/?page=trimmomatic))
+3. Align the reads ([`BWA mem`](https://bio-bwa.sourceforge.net/bwa.shtml))
+4. Index the aligned bam files ([`Samtools index`](http://www.htslib.org))
 5. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-6. Coverage calculation ([`Mosdepth`]())
-7. Alignemnt QC ([`Picard Collect WGS metrics`]())
-8. Alignemnt QC ([`Picard Collect Alignment Summary Metrics`]())
-9. Alignemnt QC ([`Quality Scores distribution`]())
+6. Coverage calculation ([`Mosdepth`](https://github.com/brentp/mosdepth))
+7. Alignemnt QC ([`Picard Collect WGS metrics`](https://broadinstitute.github.io/picard/))
+8. Alignemnt QC ([`Picard Collect Alignment Summary Metrics`](https://broadinstitute.github.io/picard/))
+9. Alignemnt QC ([`Quality Scores distribution`](https://broadinstitute.github.io/picard/))
 10. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
 B. SNV/Indel subworkflow
-1. Variant calling ([`DeepVariant`]())
-2. Joint calling ([`GLnexus`]())
-3. Split multi-allelic variants ([``]())
-4. Redefine varaints ID ([``]())
-5. Index vcf file ([``]())
-6. Sample QC and sex inference ([`Hail`]())
-7. Variant QC and frequency calculation ([`Hail`]())
-8. Annotation ([`VEP`]())
+1. Variant calling ([`DeepVariant`](https://github.com/google/deepvariant))
+2. Joint calling ([`GLnexus`](https://github.com/dnanexus-rnd/GLnexus))
+3. Split multi-allelic variants ([`Bedtools norm`](https://bedtools.readthedocs.io/en/latest/))
+4. Redefine varaints ID ([`Bedtools Annotate`](https://bedtools.readthedocs.io/en/latest/))
+5. Sample QC and sex inference ([`Hail`](https://hail.is))
+6. Variant QC and frequency calculation ([`Hail`](https://hail.is))
+7. Annotation ([`VEP`](https://useast.ensembl.org/info/docs/tools/vep/index.html))
+
+C. Mitochondrial Subworkflow
+Will be included soon
+
+D. Structural varaint subworkflow
+Will be included soon
 
 
 ## Quick Start
@@ -71,13 +69,15 @@ B. SNV/Indel subworkflow
 
 4. Start running your own analysis!
 
-   <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
-
    ```bash
    nextflow run nf-core/variantcatalogue --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
    ```
 
 ## Documentation
+
+More details about the pipeline can be found in the following preperint [Correard et al., 2022](https://www.biorxiv.org/content/10.1101/2022.10.03.508010v2)
+
+A bytesize talk about the varaint catalogue is available on the [nf-core website](https://nf-co.re/events/2023/bytesize_variantcatalog)
 
 The nf-core/variantcatalogue pipeline comes with documentation about the pipeline [usage](https://nf-co.re/variantcatalogue/usage), [parameters](https://nf-co.re/variantcatalogue/parameters) and [output](https://nf-co.re/variantcatalogue/output).
 
@@ -86,8 +86,9 @@ The nf-core/variantcatalogue pipeline comes with documentation about the pipelin
 nf-core/variantcatalogue was originally written by @scorreard.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
-
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+@WyethWasserman
+@melsiddieg
+@brittanyhewitson
 
 ## Contributions and Support
 
@@ -97,10 +98,7 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use  nf-core/variantcatalogue for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
+If you use  nf-core/variantcatalogue for your analysis, please cite it using the following doi: [10.1101/2022.10.03.508010](https://doi.org/10.1101/2022.10.03.508010)
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
