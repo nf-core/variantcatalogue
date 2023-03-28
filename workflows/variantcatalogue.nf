@@ -41,7 +41,7 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 
 
 include { Picard_CollectAlignmentSummaryMetrics } from '../modules/local/Picard_CollectAlignmentSummaryMetrics'
-include { Picard_QualityScoreDistribution       } from '../modules/lcoal/Picard_QualityScoreDistribution'
+include { Picard_QualityScoreDistribution       } from '../modules/local/Picard_QualityScoreDistribution'
 
 
 
