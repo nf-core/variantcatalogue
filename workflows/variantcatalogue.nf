@@ -9,7 +9,6 @@ def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 // Validate input parameters
 WorkflowVariantcatalogue.initialise(params, log)
 
-// TODO nf-core: Add all file path parameters for the pipeline to the list below
 // Check input path parameters to see if they exist
 def checkPathParamList = [ params.input, params.multiqc_config, params.fasta ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
@@ -52,6 +51,7 @@ include { Picard_QualityScoreDistribution       } from '../modules/local/Picard_
 // For the SNV/indel subworkflow
 //
 
+include { list_vcfs_txt   } from '../modules/local/list_vcfs_txt.nf'
 include { Hail_sample_QC  } from '../modules/local/Hail_sample_QC'
 include { Hail_variant_QC } from '../modules/local/Hail_variant_QC'
 
@@ -88,6 +88,7 @@ include { MULTIQC                  } from '../modules/nf-core/multiqc/main'
 
 include { DEEPVARIANT       } from '../modules/nf-core/deepvariant/main' 
 include { GLNEXUS           } from '../modules/nf-core/glnexus/main'
+include { TABIX_TABIX       } from '../modules/nf-core/tabix/tabix/main'
 include { BCFTOOLS_NORM     } from '../modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_ANNOTATE } from '../modules/nf-core/bcftools/annotate/main'
 include { ENSEMBLVEP_VEP    } from '../modules/nf-core/ensemblvep/vep/main'
@@ -130,11 +131,16 @@ workflow VARIANTCATALOGUE {
     // Subworkflow : Mapping
     //
 
-    BWA_INDEX      ( reference )
-    ch_versions = ch_versions.mix(BWA_INDEX.out.versions.first())
+    FASTQC (
+        INPUT_CHECK.out.reads
+    )
+    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
     TRIMMOMATIC    (INPUT_CHECK.out.reads )
     ch_versions = ch_versions.mix(TRIMMOMATIC.out.versions.first())
+
+    BWA_INDEX      ( reference )
+    ch_versions = ch_versions.mix(BWA_INDEX.out.versions.first())
 
     BWA_MEM        (TRIMMOMATIC.out.trimmed_reads, BWA_INDEX.out.index, true )
     ch_versions = ch_versions.mix(BWA_MEM.out.versions.first())
@@ -142,17 +148,14 @@ workflow VARIANTCATALOGUE {
     SAMTOOLS_INDEX (BWA_MEM.out.bam ) 
     ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
 
-    FASTQC (
-        INPUT_CHECK.out.reads
-    )
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    ch_bam = BWA_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai)       // channel: [mandatory] [ val(meta), path(bam), path(bai) ]
+    ch_bam.map { meta, bam, bai ->
+                        return [meta, bam, bai, []]
+            }
+            .set { ch_mosdepth_in }
 
-
-//    MOSDEPTH ( BWA_MEM.out.bam
-//			.join(SAMTOOLS_INDEX.out.bai)
-//			.join (dummy)
-//		,[[:],[]]) 
-//    ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
+    MOSDEPTH ( ch_mosdepth_in, [[:],[]]) 
+    ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
 
     PICARD_COLLECTWGSMETRICS ( BWA_MEM.out.bam
                                         .join(SAMTOOLS_INDEX.out.bai),
@@ -172,17 +175,35 @@ workflow VARIANTCATALOGUE {
 
     ch_bam = BWA_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai)       // channel: [mandatory] [ val(meta), path(bam), path(bai) ]
     ch_bam.map { meta, bam, bai ->
-                        return [meta, bam, bai, []]
+                        return [meta, bam, bai, file(params.test_bed)]
             }
             .set { ch_deepvar_in }
 
-    DEEPVARIANT (ch_deepvar_in, file(params.reference), file(params.reference_index))
-//    GLNEXUS       (DEEPVARIANT.out.gvcf.collect())
-//    BCFTOOLS_NORM (GLNEXUS.out.bcf.join(INDEX??))
+
+    DEEPVARIANT       (ch_deepvar_in, file(params.reference), file(params.reference_index))
+
+    ch_case_info = Channel.from([id:'SNV'])
+ 
+        DEEPVARIANT.out.gvcf
+            .collect{it[1]}
+            .toList()
+            .collect()
+            .set { ch_file_list }
+
+        ch_case_info
+            .combine(ch_file_list)
+            .set { ch_gvcfs }
+
+ch_case_info.view()
+ch_gvcfs.view()
+
+    GLNEXUS           (ch_gvcfs)
+//    TABIX_TABIX       (GLNEXUS.out.bcf)
+//    BCFTOOLS_NORM     (GLNEXUS.out.bcf.join(TABIX_TABIX.out.csi), file(params.reference))
 //    BCFTOOLS_ANNOTATE (BCFTOOLS_NORM.out.vcf)
-//    Hail_sample_QC (BCFTOOLS_ANNOTATE.out.vcf)
-//    Hail_variant_QC (Hail_sample_QC.out.vcf_sample_filtered, Hail_sample_QC.out.filtered_sample_sex)
-//    ENSEMBLVEP_VEP (Hail_variant_QC.out.vcf_SNV_filtered_frequ_only, BUNCH OF STUFF)
+//    Hail_sample_QC    (BCFTOOLS_ANNOTATE.out.vcf)
+//    Hail_variant_QC   (Hail_sample_QC.out.vcf_sample_filtered, Hail_sample_QC.out.filtered_sample_sex)
+//    ENSEMBLVEP_VEP    (Hail_variant_QC.out.vcf_SNV_filtered_frequ_only, params.genome, params.species, params.cache_version, )
 
 
     CUSTOM_DUMPSOFTWAREVERSIONS (
@@ -203,7 +224,7 @@ workflow VARIANTCATALOGUE {
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-//    ch_multiqc_files = ch_multiqc_files.mix(MOSDEPTH.out.global_txt.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(MOSDEPTH.out.global_txt.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(PICARD_COLLECTWGSMETRICS.out.metrics.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(Picard_CollectAlignmentSummaryMetrics.out.report.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(Picard_QualityScoreDistribution.out.report.collect{it[1]}.ifEmpty([]))

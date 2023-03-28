@@ -6,14 +6,37 @@ This document describes the output produced by the pipeline. Most of the plots a
 
 The directories listed below will be created in the results directory after the pipeline has finished. All paths are relative to the top-level results directory.
 
-<!-- TODO nf-core: Write this documentation describing your workflow's output -->
-
 ## Pipeline overview
 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
 
+A. Mapping subworkflow
+- [BWA index](#bwa_index) - Index the reference genome
+- [Trimmomatic](#trimmomatic) - Trim the reads
+- [BWA mem](#bwa_mem) - Align the reads
+- [Samtools index](#samtools_index) - Index the aligned bam files
 - [FastQC](#fastqc) - Raw read QC
+- [Mosdepth](#mosdepth) - Coverage calculation
+- [Picard Collect WGS metrics](#Picard_Collect_WGS_metrics) - Alignemnt QC 
+- [Picard Collect Alignment Summary Metrics](#Picard_Collect_Alignment_Summary_Metrics) - Alignemnt QC
+- [Quality Scores distribution](#Quality_Scores_distribution) - Alignemnt QC
 - [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline
+
+B. SNV/Indel subworkflow
+- [DeepVariant](#DeepVariant) - Variant calling
+- [GLnexus](#GLnexus) - Joint calling
+- [Bedtools norm](#Bedtools_norm) - Split multi-allelic variants
+- [Bedtools Annotate](#Bedtools_Annotate) - Redefine varaints ID
+- [Hail Sample QC](#Hail_sample_QC) - Sample QC and sex inference
+- [Hail Variant QC](#Hail_variant_QC) - Variant QC and frequency calculation
+- [VEP](#vep) - Annotation
+
+C. Mitochondrial Subworkflow
+Will be included soon
+
+D. Structural varaint subworkflow
+Will be included soon
+
 - [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
 ### FastQC
