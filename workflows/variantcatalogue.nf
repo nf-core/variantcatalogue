@@ -167,11 +167,22 @@ workflow VARIANTCATALOGUE {
 
 
     //
-    // Subworkflow : SNV?indel
+    // Subworkflow : SNV/indel
     //
 
-    DEEPVARIANT
-    GLNEXUS
+    ch_bam = BWA_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai)       // channel: [mandatory] [ val(meta), path(bam), path(bai) ]
+    ch_bam.map { meta, bam, bai ->
+                        return [meta, bam, bai, []]
+            }
+            .set { ch_deepvar_in }
+
+    DEEPVARIANT (ch_deepvar_in	)
+//    GLNEXUS       (DEEPVARIANT.out.gvcf.collect())
+//    BCFTOOLS_NORM (GLNEXUS.out.bcf.join(INDEX??))
+//    BCFTOOLS_ANNOTATE (BCFTOOLS_NORM.out.vcf)
+//    Hail_sample_QC (BCFTOOLS_ANNOTATE.out.vcf)
+//    Hail_variant_QC (Hail_sample_QC.out.vcf_sample_filtered, Hail_sample_QC.out.filtered_sample_sex)
+//    ENSEMBLVEP_VEP (Hail_variant_QC.out.vcf_SNV_filtered_frequ_only, BUNCH OF STUFF)
 
 
     CUSTOM_DUMPSOFTWAREVERSIONS (
