@@ -1,5 +1,5 @@
 process Picard_CollectAlignmentSummaryMetrics {
-	ag "$meta.id"
+	tag "$meta.id"
 	label 'process_medium'
 
     conda "bioconda::gatk4=4.3.0.0"

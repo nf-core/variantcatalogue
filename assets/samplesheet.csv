@@ -1,3 +1,7 @@
 sample,fastq_1,fastq_2
-SAMPLE_PAIRED_END,/path/to/fastq/files/AEG588A1_S1_L002_R1_001.fastq.gz,/path/to/fastq/files/AEG588A1_S1_L002_R2_001.fastq.gz
-SAMPLE_SINGLE_END,/path/to/fastq/files/AEG588A4_S4_L003_R1_001.fastq.gz,
+HG00446,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/HG00446_R1.fastq.gz,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/HG00446_R2.fastq.gz
+NA12718,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA12718_R1.fastq.gz,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA12718_R2.fastq.gz
+NA12878mito,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA12878mito_1.fq.gz,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA12878mito_2.fq.gz
+NA18549,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA18549_R1.fastq.gz,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA18549_R2.fastq.gz
+NA20757,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA20757_R1.fastq.gz,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA20757_R2.fastq.gz
+NA20769,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA20769_R1.fastq.gz,https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/NA20769_R2.fastq.gz

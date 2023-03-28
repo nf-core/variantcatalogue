@@ -93,17 +93,27 @@ workflow VARIANTCATALOGUE {
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
 
 
+    reference = [
+        [ id:'reference', single_end:true ],
+        file(params.reference)
+	]
+
+    reference_index = [
+        [ id:'reference', single_end:true ],
+        file(params.reference_index)
+        ]
+
     //
     // Subworkflow : Mapping
     //
 
-    BWA_INDEX      (INPUT_CHECK.out.reference )
+    BWA_INDEX      ( reference )
     ch_versions = ch_versions.mix(BWA_INDEX.out.versions.first())
 
     TRIMMOMATIC    (INPUT_CHECK.out.reads )
     ch_versions = ch_versions.mix(TRIMMOMATIC.out.versions.first())
 
-    BWA_MEM        (TRIMMOMATIC.out.trimmed_reads, BWA_INDEX.out.index, true )
+    BWA_MEM        (TRIMMOMATIC.out.trimmed_reads, reference, true )
     ch_versions = ch_versions.mix(BWA_MEM.out.versions.first())
 
     SAMTOOLS_INDEX (BWA_MEM.out.bam ) 
@@ -114,25 +124,22 @@ workflow VARIANTCATALOGUE {
     )
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
-    MOSDEPTH ( BWA_MEM.out.bam
-					.join(SAMTOOLS_INDEX.out.bai)
-					.join([]),
-				[[:],[]]) 
-    ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
+//    MOSDEPTH ( BWA_MEM.out.bam
+//					.join(SAMTOOLS_INDEX.out.bai)
+//					.join([]),
+//				[[:],[]]) 
+//    ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
 
     PICARD_COLLECTWGSMETRICS ( BWA_MEM.out.bam
                                         .join(SAMTOOLS_INDEX.out.bai),
-				INPUT_CHECK.out.reference,
-				INPUT_CHECK.out.reference_index,
+				reference,
+				reference_index,
 				[]
 			)
     ch_versions = ch_versions.mix(PICARD_COLLECTWGSMETRICS.out.versions.first())
 
     Picard_CollectAlignmentSummaryMetrics ( BWA_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai))
-    Picard_QualityScoreDistribution(align_sort_output_bam.out.samples_bam, align_sort_output_bam.out.samples_bam_index, assembly, batch, run)
-
-
-
+    Picard_QualityScoreDistribution       ( BWA_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai))
 
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
@@ -152,7 +159,7 @@ workflow VARIANTCATALOGUE {
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(MOSDEPTH.out.global_txt.collect{it[1]}.ifEmpty([]))
+//    ch_multiqc_files = ch_multiqc_files.mix(MOSDEPTH.out.global_txt.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(PICARD_COLLECTWGSMETRICS.out.metrics.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(Picard_CollectAlignmentSummaryMetrics.out.report.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(Picard_QualityScoreDistribution.out.report.collect{it[1]}.ifEmpty([]))
