@@ -1,6 +1,6 @@
 process DEEPVARIANT {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_high'
 
     container "google/deepvariant:1.4.0"
 
@@ -33,6 +33,7 @@ process DEEPVARIANT {
         --reads=${input} \\
         --output_vcf=${prefix}.vcf.gz \\
         --output_gvcf=${prefix}.g.vcf.gz \\
+        --sample_name=${prefix} \\
         ${args} \\
         ${regions} \\
         --num_shards=${task.cpus}
