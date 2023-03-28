@@ -59,7 +59,6 @@ include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 
 //
-// MODULE: Installed directly from nf-core/modules
 // For the mapping subworkflow
 //
 
@@ -68,10 +67,8 @@ include { BWA_MEM                  } from '../modules/nf-core/bwa/mem/main'
 include { SAMTOOLS_INDEX           } from '../modules/nf-core/samtools/index/main'
 include { TRIMMOMATIC              } from '../modules/nf-core/trimmomatic/main'
 
-include { FASTQC                   } from '../modules/nf-core/fastqc/main'
 include { MOSDEPTH                 } from '../modules/nf-core/mosdepth/main'
 include { PICARD_COLLECTWGSMETRICS } from '../modules/nf-core/picard/collectwgsmetrics/main'
-include { MULTIQC                  } from '../modules/nf-core/multiqc/main'
 
 
 /*
@@ -101,36 +98,45 @@ workflow VARIANTCATALOGUE {
     //
 
     BWA_INDEX      (INPUT_CHECK.out.reference )
-    TRIMMOMATIC    (INPUT_CHECK.out.reads )
-    BWA_MEM        (TRIMMOMATIC.out.trimmed_reads, BWA_INDEX.out.index, true )
-    SAMTOOLS_INDEX (BWA_MEM.out.bam ) 
+    ch_versions = ch_versions.mix(BWA_INDEX.out.versions.first())
 
-    FASTQC   (INPUT_CHECK.out.reads )
+    TRIMMOMATIC    (INPUT_CHECK.out.reads )
+    ch_versions = ch_versions.mix(TRIMMOMATIC.out.versions.first())
+
+    BWA_MEM        (TRIMMOMATIC.out.trimmed_reads, BWA_INDEX.out.index, true )
+    ch_versions = ch_versions.mix(BWA_MEM.out.versions.first())
+
+    SAMTOOLS_INDEX (BWA_MEM.out.bam ) 
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
+
+    FASTQC (
+        INPUT_CHECK.out.reads
+    )
+    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+
     MOSDEPTH ( BWA_MEM.out.bam
 					.join(SAMTOOLS_INDEX.out.bai)
 					.join([]),
 				[[:],[]]) 
+    ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
+
     PICARD_COLLECTWGSMETRICS ( BWA_MEM.out.bam
                                         .join(SAMTOOLS_INDEX.out.bai),
 				INPUT_CHECK.out.reference,
 				INPUT_CHECK.out.reference_index,
 				[]
 			)
-    Picard_CollectAlignmentSummaryMetrics(align_sort_output_bam.out.samples_bam, align_sort_output_bam.out.samples_bam_index, assembly, batch, run)
+    ch_versions = ch_versions.mix(PICARD_COLLECTWGSMETRICS.out.versions.first())
+
+    Picard_CollectAlignmentSummaryMetrics ( BWA_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai))
     Picard_QualityScoreDistribution(align_sort_output_bam.out.samples_bam, align_sort_output_bam.out.samples_bam_index, assembly, batch, run)
 
 
-    //
-    // MODULE: Run FastQC
-    //
-//    FASTQC (
-//        INPUT_CHECK.out.reads
-//    )
-//    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
- //   CUSTOM_DUMPSOFTWAREVERSIONS (
-//        ch_versions.unique().collectFile(name: 'collated_versions.yml')
-//    )
+
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_versions.unique().collectFile(name: 'collated_versions.yml')
+    )
 
     //
     // MODULE: MultiQC
@@ -148,8 +154,8 @@ workflow VARIANTCATALOGUE {
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(MOSDEPTH.out.global_txt.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(PICARD_COLLECTWGSMETRICS.out.metrics.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(Picard_CollectAlignmentSummaryMetrics.out.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(Picard_QualityScoreDistribution.out.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(Picard_CollectAlignmentSummaryMetrics.out.report.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(Picard_QualityScoreDistribution.out.report.collect{it[1]}.ifEmpty([]))
 
 
     MULTIQC (
