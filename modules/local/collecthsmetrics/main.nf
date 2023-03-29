@@ -38,6 +38,7 @@ process PICARD_COLLECTHSMETRICS {
         CollectHsMetrics \\
         $args \\
         $reference \\
+        --PER_BASE_COVERAGE ${meta.id}_collect_wgs_metrics_${bait_intervals}.tsv \\
         --BAIT_INTERVALS $bait_intervals \\
         --TARGET_INTERVALS $bait_intervals \\
         --INPUT $bam \\
