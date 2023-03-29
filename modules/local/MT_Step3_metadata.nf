@@ -2,10 +2,10 @@ process MT_Step3_metadata {
 	label 'process_medium'
         
 	input :
-        tuple val(meta), path(MT_Step3_metadata_sample)
+        path(MT_Step3_metadata_sample)
 
         output :
-        tuple val(meta), path('*.tsv')
+        path('*.tsv'), emit : tsv
 
         script:
 	"""

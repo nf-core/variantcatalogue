@@ -6,8 +6,8 @@ process MT_Step2_participant_data {
 	tuple val(meta), path(Sample_list)
 
         output :
-        tuple val(meta), path('*.tsv'), emit : MT_Step2_participant_data_tsv
-	tuple val(meta), path('*.txt'), emit : participants_to_subset_txt
+        path('*.tsv'), emit : MT_Step2_participant_data_tsv
+	path('*.txt'), emit : participants_to_subset_txt
 
         script:
 	"""

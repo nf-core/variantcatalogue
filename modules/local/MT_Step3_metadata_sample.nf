@@ -11,11 +11,11 @@ process MT_Step3_metadata_sample {
 	tuple val(meta), path(haplocheck)
 	
 	output :
-	tuple val(meta), path('*'), emit : MT_Step3_metadata_sample
+	path('*'), emit : MT_Step3_metadata_sample
 
 	script:
 	"""
-	Rscript ${projectDir}/modules/local/MT_Step3_metadata_sample.R ${meta.id}_sorted.mosdepth.summary.txt ${haplocheck} 
+	Rscript ${projectDir}/modules/local/MT_Step3_metadata_sample.R ${mosdepth} ${haplocheck} 
 	mv conta_cov.tsv ${meta.id}_conta_cov.tsv
 	"""
 }

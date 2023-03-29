@@ -5,7 +5,7 @@ process MT_Step1_input_tsv {
         tuple val(meta), path(Sample_MT_Step1_input_tsv)
 
         output :
-        tuple val(meta), path('*.tsv')
+        path('*.tsv'), emit: tsv
 
         script:
 	"""
