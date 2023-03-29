@@ -43,6 +43,7 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 // For the mapping subworkflow
 //
 
+include { BWA_MEM                               } from '../modules/local/bwa/mem/main'
 include { Picard_CollectAlignmentSummaryMetrics } from '../modules/local/Picard_CollectAlignmentSummaryMetrics'
 include { Picard_QualityScoreDistribution       } from '../modules/local/Picard_QualityScoreDistribution'
 
@@ -51,6 +52,7 @@ include { Picard_QualityScoreDistribution       } from '../modules/local/Picard_
 // For the SNV/indel subworkflow
 //
 
+include { BCFTOOLS_NORM   } from '../modules/local/bcftools/norm/main'
 include { DEEPVARIANT     } from '../modules/local/deepvariant/main'
 include { Hail_sample_QC  } from '../modules/local/Hail_sample_QC'
 include { Hail_variant_QC } from '../modules/local/Hail_variant_QC'
@@ -59,18 +61,22 @@ include { Hail_variant_QC } from '../modules/local/Hail_variant_QC'
 // For the MT subworkflow
 //
 
-include { GATK4_PRINTREADS          } from '../modules/local/gatk4/printreads/main'
-include { shift_back                } from '../modules/local/shift_back' 
+include { GATK4_LEFTALIGNANDTRIMVARIANTS                       } from '../modules/local/gatk4/leftalignandtrimvariants/main'
+include { BWA_MEM as BWA_MEM_MT; BWA_MEM as BWA_MEM_MT_shifted } from '../modules/local/bwa/mem/main'
+include { BCFTOOLS_NORM as BCFTOOLS_NORM_MT                    } from '../modules/local/bcftools/norm/main'
+include { GATK4_PRINTREADS                                     } from '../modules/local/gatk4/printreads/main'
+include { shift_back                                           } from '../modules/local/shift_back' 
 include { PICARD_COLLECTHSMETRICS as PICARD_COLLECTHSMETRICS_MT; PICARD_COLLECTHSMETRICS as PICARD_COLLECTHSMETRICS_MT_shifted } from '../modules/local/collecthsmetrics/main'
-include { GATK4_MERGEMUTECTSTATS    } from '../modules/local/gatk4/mergemutectstats/main'
-include { GATK4_FILTERMUTECTCALLS                                             } from '../modules/local/filtermutectcalls/main'
-include { GATK4_VARIANTFILTRATION                                             } from '../modules/local/variantfiltration/main'
-include { MT_Liftover               } from '../modules/local/MT_Liftover'
-include { MT_Step1_input_tsv        } from '../modules/local/MT_Step1_input_tsv'
-include { MT_Step2_participant_data } from '../modules/local/MT_Step2_participant_data'
-include { MT_Step3_metadata         } from '../modules/local/MT_Step3_metadata'
-include { MT_Step3_metadata_sample  } from '../modules/local/MT_Step3_metadata_sample'
-include { Hail_variant_MT_QC        } from '../modules/local/Hail_variant_MT_QC'
+include { GATK4_MERGEMUTECTSTATS                                } from '../modules/local/gatk4/mergemutectstats/main'
+include { GATK4_FILTERMUTECTCALLS                               } from '../modules/local/filtermutectcalls/main'
+include { GATK4_VARIANTFILTRATION                               } from '../modules/local/variantfiltration/main'
+include { MT_Liftover                                           } from '../modules/local/MT_Liftover'
+include { HAPLOCHECK                                            } from '../modules/local/haplocheck/main'
+include { MT_Step1_input_tsv                                    } from '../modules/local/MT_Step1_input_tsv'
+include { MT_Step2_participant_data                             } from '../modules/local/MT_Step2_participant_data'
+include { MT_Step3_metadata                                     } from '../modules/local/MT_Step3_metadata'
+include { MT_Step3_metadata_sample                              } from '../modules/local/MT_Step3_metadata_sample'
+include { Hail_variant_MT_QC                                    } from '../modules/local/Hail_variant_MT_QC'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,7 +95,6 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoft
 //
 
 include { BWA_INDEX                } from '../modules/nf-core/bwa/index/main'
-include { BWA_MEM                  } from '../modules/nf-core/bwa/mem/main'
 include { SAMTOOLS_INDEX           } from '../modules/nf-core/samtools/index/main'
 include { TRIMMOMATIC              } from '../modules/nf-core/trimmomatic/main'
 include { MOSDEPTH                 } from '../modules/nf-core/mosdepth/main'
@@ -103,7 +108,6 @@ include { MULTIQC                  } from '../modules/nf-core/multiqc/main'
 
 include { GLNEXUS           } from '../modules/nf-core/glnexus/main'
 include { TABIX_TABIX       } from '../modules/nf-core/tabix/tabix/main'
-include { BCFTOOLS_NORM     } from '../modules/nf-core/bcftools/norm/main'
 include { BCFTOOLS_ANNOTATE } from '../modules/nf-core/bcftools/annotate/main'
 include { ENSEMBLVEP_VEP    } from '../modules/nf-core/ensemblvep/vep/main'
 
@@ -112,16 +116,12 @@ include { ENSEMBLVEP_VEP    } from '../modules/nf-core/ensemblvep/vep/main'
 //
 
 include { BWA_INDEX as BWA_INDEX_MT; BWA_INDEX as BWA_INDEX_MT_shifted       } from '../modules/nf-core/bwa/index/main'
-include { BWA_MEM as BWA_MEM_MT; BWA_MEM as BWA_MEM_MT_shifted               } from '../modules/nf-core/bwa/mem/main'
 include { GATK4_SAMTOFASTQ                                                   } from '../modules/nf-core/gatk4/samtofastq/main'
 include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_MT; SAMTOOLS_INDEX as SAMTOOLS_INDEX_MT_shifted                         } from '../modules/nf-core/samtools/index/main'
 include { GATK4_MARKDUPLICATES as GATK4_MARKDUPLICATES_MT; GATK4_MARKDUPLICATES as GATK4_MARKDUPLICATES_MT_shifted } from '../modules/nf-core/gatk4/markduplicates/main'
 include { GATK4_MUTECT2; GATK4_MUTECT2 as GATK4_MUTECT2_shifted               } from '../modules/nf-core/gatk4/mutect2/main'
 include { TABIX_TABIX as TABIX_TABIX_MT; TABIX_TABIX as TABIX_TABIX_MT2       } from '../modules/nf-core/tabix/tabix/main'
-include { BCFTOOLS_NORM as BCFTOOLS_NORM_MT                                   } from '../modules/nf-core/bcftools/norm/main' 
-include { GATK4_LEFTALIGNANDTRIMVARIANTS                                      } from '../modules/nf-core/gatk4/leftalignandtrimvariants/main'
 include { GATK4_MERGEVCFS                                                     } from '../modules/nf-core/gatk4/mergevcfs/main'
-include { HAPLOCHECK                                                          } from '../modules/nf-core/haplocheck/main'
 
 
 

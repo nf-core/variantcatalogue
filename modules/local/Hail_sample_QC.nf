@@ -1,7 +1,7 @@
 process Hail_sample_QC {
     label 'process_medium'
 
-    conda "bioconda::hail=0.2.58"
+    conda "bioconda::hail=0.2.61"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/hail:0.2.61--py37h9a982cc_1':
         'quay.io/biocontainers/hail:0.2.61--py37h9a982cc_1' }"
