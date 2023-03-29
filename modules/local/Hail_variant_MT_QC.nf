@@ -29,7 +29,7 @@ process Hail_variant_MT_QC {
 	"""
 	mkdir -p $params.tmp_dir
 	pip install gnomad
-        python ${projectDir}/modules/local/Hail_variant_MT_QC.py $MT_Step1_input_tsv $MT_Step2_participant_data $MT_participants_to_subset $MT_Step3_participant_data $pon_prediction_table $artifact_prone_sites_bed $reference $refrence_index $mitotip_predictions_table $params.tmp_dir
+	python ${projectDir}/modules/local/Hail_variant_MT_QC.py $MT_Step1_input_tsv $MT_Step2_participant_data $MT_participants_to_subset $MT_Step3_participant_data $pon_prediction_table $artifact_prone_sites_bed $reference $reference_index $mitotip_predictions_table $params.tmp_dir
 	"""
 }
 

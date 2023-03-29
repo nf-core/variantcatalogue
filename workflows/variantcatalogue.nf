@@ -341,7 +341,7 @@ workflow VARIANTCATALOGUE {
     MT_Step1_input_tsv(shift_back.out.Sample_MT_Step1_input_tsv.collect())
     MT_Step2_participant_data(GATK4_VARIANTFILTRATION.out.sample_MT_Step2_participant_data.collect(), GATK4_VARIANTFILTRATION.out.Sample_list.collect())
     MT_Step3_metadata_sample(MOSDEPTH.out.summary_txt, HAPLOCHECK.out.haplocheck)
-    MT_Step3_metadata(MT_Step3_metadata_sample.out.collect{it[1]})
+    MT_Step3_metadata(MT_Step3_metadata_sample.out.collect())
     Hail_variant_MT_QC(MT_Step1_input_tsv.out.tsv, MT_Step2_participant_data.out.MT_Step2_participant_data_tsv, MT_Step2_participant_data.out.participants_to_subset_txt, MT_Step3_metadata.out.tsv, file(params.reference_MT), file(params.reference_MT_index), file(params.pon_predictions_table), file(params.artifact_prone_sites_bed), file(params.mitotip_predictions_table))
 
 
