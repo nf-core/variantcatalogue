@@ -59,11 +59,18 @@ include { Hail_variant_QC } from '../modules/local/Hail_variant_QC'
 // For the MT subworkflow
 //
 
-include { GATK4_PRINTREADS   } from '../modules/local/gatk4/printreads/main'
-include { shift_back         } from '../modules/local/shift_back' 
+include { GATK4_PRINTREADS          } from '../modules/local/gatk4/printreads/main'
+include { shift_back                } from '../modules/local/shift_back' 
 include { PICARD_COLLECTHSMETRICS as PICARD_COLLECTHSMETRICS_MT; PICARD_COLLECTHSMETRICS as PICARD_COLLECTHSMETRICS_MT_shifted } from '../modules/local/collecthsmetrics/main'
-include { MT_Liftover        } from '../modules/local/MT_Liftover'
-include { Hail_variant_MT_QC } from '../modules/local/Hail_variant_MT_QC'
+include { GATK4_MERGEMUTECTSTATS    } from '../modules/local/gatk4/mergemutectstats/main'
+include { GATK4_FILTERMUTECTCALLS                                             } from '../modules/local/filtermutectcalls/main'
+include { GATK4_VARIANTFILTRATION                                             } from '../modules/local/variantfiltration/main'
+include { MT_Liftover               } from '../modules/local/MT_Liftover'
+include { MT_Step1_input_tsv        } from '../modules/local/MT_Step1_input_tsv'
+include { MT_Step2_participant_data } from '../modules/local/MT_Step2_participant_data'
+include { MT_Step3_metadata         } from '../modules/local/MT_Step3_metadata'
+include { MT_Step3_metadata_sample  } from '../modules/local/MT_Step3_metadata_sample'
+include { Hail_variant_MT_QC        } from '../modules/local/Hail_variant_MT_QC'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -110,13 +117,10 @@ include { GATK4_SAMTOFASTQ                                                   } f
 include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_MT; SAMTOOLS_INDEX as SAMTOOLS_INDEX_MT_shifted                         } from '../modules/nf-core/samtools/index/main'
 include { GATK4_MARKDUPLICATES as GATK4_MARKDUPLICATES_MT; GATK4_MARKDUPLICATES as GATK4_MARKDUPLICATES_MT_shifted } from '../modules/nf-core/gatk4/markduplicates/main'
 include { GATK4_MUTECT2; GATK4_MUTECT2 as GATK4_MUTECT2_shifted               } from '../modules/nf-core/gatk4/mutect2/main'
-include { TABIX_TABIX as TABIX_TABIX_MT                                       } from '../modules/nf-core/tabix/tabix/main'
-include { BCFTOOLS_NORM as BCFTOOLS_NORM_MT                                   } from '../modules/nf-core/bcftools/norm/main'
-include { GATK4_VARIANTFILTRATION                                             } from '../modules/nf-core/gatk4/variantfiltration/main'  
-include { GATK4_FILTERMUTECTCALLS                                             } from '../modules/nf-core/gatk4/filtermutectcalls/main' 
+include { TABIX_TABIX as TABIX_TABIX_MT; TABIX_TABIX as TABIX_TABIX_MT2       } from '../modules/nf-core/tabix/tabix/main'
+include { BCFTOOLS_NORM as BCFTOOLS_NORM_MT                                   } from '../modules/nf-core/bcftools/norm/main' 
 include { GATK4_LEFTALIGNANDTRIMVARIANTS                                      } from '../modules/nf-core/gatk4/leftalignandtrimvariants/main'
 include { GATK4_MERGEVCFS                                                     } from '../modules/nf-core/gatk4/mergevcfs/main'
-include { GATK4_MERGEMUTECTSTATS                                              } from '../modules/nf-core/gatk4/mergemutectstats/main'  
 include { HAPLOCHECK                                                          } from '../modules/nf-core/haplocheck/main'
 
 
@@ -308,34 +312,37 @@ workflow VARIANTCATALOGUE {
             .set { ch_mutect2_shifted_in }
 
     GATK4_MUTECT2_shifted  (ch_mutect2_shifted_in, file(params.reference_MT_shifted), file(params.reference_MT_shifted_index), file(params.reference_MT_shifted_dict), [], [], [], [])
-      MT_Liftover            (GATK4_MUTECT2_shifted.out.vcf.join(GATK4_MUTECT2_shifted.out.tbi), reference_MT, reference_dict, BWA_INDEX_MT.out.index, file(params.ShiftBack_chain))
-//    GATK4_MERGEVCFS        (MT_Liftover.out.vcf.join(GATK4_MUTECT2.out.vcf), reference_dict)
-//    TABIX_TABIX_MT         (GATK4_MERGEVCFS.out.vcf)
-//    BCFTOOLS_NORM_MT       (GATK4_MERGEVCFS.out.vcf.join(TABIX_TABIX_MT.out.tbi), file(params.reference_MT))
-//    TABIX_TABIX_MT2        (BCFTOOLS_NORM_MT.out.vcf)
-//    GATK4_MERGEMUTECTSTATS (GATK4_MUTECT2.out.stats.join(GATK4_MUTECT2_shifted.out.stat))
+    MT_Liftover            (GATK4_MUTECT2_shifted.out.vcf.join(GATK4_MUTECT2_shifted.out.tbi), reference_MT, reference_MT_dict, BWA_INDEX_MT.out.index, file(params.ShiftBack_chain))
+    GATK4_MERGEVCFS        (MT_Liftover.out.lifted_vcf.join(GATK4_MUTECT2.out.vcf), reference_MT_dict)
+    TABIX_TABIX_MT         (GATK4_MERGEVCFS.out.vcf)
+    BCFTOOLS_NORM_MT       (GATK4_MERGEVCFS.out.vcf.join(TABIX_TABIX_MT.out.tbi), file(params.reference_MT))
+    TABIX_TABIX_MT2        (BCFTOOLS_NORM_MT.out.vcf)
+    GATK4_MERGEMUTECTSTATS (GATK4_MUTECT2.out.stats.join(GATK4_MUTECT2_shifted.out.stats))
 
-
-//    ch_vcf_MT = BCFTOOLS_NORM_MT.out.vcf
+//     GATK4_FILTERMUTECTCALLS(BCFTOOLS_NORM_MT.out.vcf
 //		.join(TABIX_TABIX_MT2.out.tbi)
-//		.join(GATK4_MERGEMUTECTSTATS.out.stat)
-//    ch_vcf_MT.map { meta, vcf, tbi, stat ->
-//                        return [meta, vcf, tbi, stat, [], [], [], []]
- //           }
-//            .set { ch_vcf_MT_in }
-
-
-//    GATK4_FILTERMUTECTCALLS(ch_vcf_MT_in, file(params.reference_MT), file(params.reference_MT_index), file(params.reference_MT_dict) )
+//		.join(GATK4_MERGEMUTECTSTATS.out.stats), file(params.reference_MT), file(params.reference_MT_index), file(params.reference_MT_dict))
 
 //    ch_vcf_MT_filtered = GATK4_FILTERMUTECTCALLS.out.vcf
 //              .join(GATK4_FILTERMUTECTCALLS.out.tbi)
-//    ch_vcf_MT_filtered.map { meta, vcf, tbi ->
-//                        return [meta, vcf, tbi, []]
- //           }
-//            .set { ch_vcf_MT_filtered_in }
-//    GATK4_LEFTALIGNANDTRIMVARIANTS(ch_vcf_MT_filtered_in, file(params.reference_MT), file(params.reference_MT_index), file(params.reference_MT_dict))
-//    GATK4_VARIANTFILTRATION(GATK4_LEFTALIGNANDTRIMVARIANTS.out.vcf.join(GATK4_LEFTALIGNANDTRIMVARIANTS.out.tbi), file(params.reference_MT), file(params.reference_MT_index), file(params.reference_MT_dict))
-//    HAPLOCHECK(GATK4_VARIANTFILTRATION.out.vcf)
+
+    ch_vcf_MT_filtered = BCFTOOLS_NORM_MT.out.vcf
+              .join(TABIX_TABIX_MT2.out.tbi)
+
+    ch_vcf_MT_filtered.map { meta, vcf, tbi ->
+                        return [meta, vcf, tbi, []]
+            }
+            .set { ch_vcf_MT_filtered_in }
+    GATK4_LEFTALIGNANDTRIMVARIANTS(ch_vcf_MT_filtered_in, file(params.reference_MT), file(params.reference_MT_index), file(params.reference_MT_dict))
+    GATK4_VARIANTFILTRATION(GATK4_LEFTALIGNANDTRIMVARIANTS.out.vcf.join(GATK4_LEFTALIGNANDTRIMVARIANTS.out.tbi), file(params.reference_MT), file(params.reference_MT_index), file(params.reference_MT_dict))
+    HAPLOCHECK(GATK4_VARIANTFILTRATION.out.vcf)
+
+    shift_back (PICARD_COLLECTHSMETRICS_MT_shifted.out.tsv.join(PICARD_COLLECTHSMETRICS_MT.out.tsv))
+    MT_Step1_input_tsv(shift_back.out.Sample_MT_Step1_input_tsv.collect())
+    MT_Step2_participant_data(GATK4_VARIANTFILTRATION.out.sample_MT_Step2_participant_data.collect(), GATK4_VARIANTFILTRATION.out.Sample_list.collect())
+    MT_Step3_metadata_sample(MOSDEPTH.out.summary_txt.collect(), HAPLOCHECK.out.haplocheck)
+//    MT_Step3_metadata()
+//    MT_Step3_metadata_sample()
 //    Hail_variant_MT_QC()
 
 

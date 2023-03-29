@@ -16,6 +16,7 @@ process PICARD_COLLECTHSMETRICS {
 
     output:
     tuple val(meta), path("*_metrics")  , emit: metrics
+    tuple val(meta), path("*.tsv")      , emit: tsv
     path "versions.yml"                 , emit: versions
 
     when:

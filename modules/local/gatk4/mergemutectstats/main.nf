@@ -8,7 +8,8 @@ process GATK4_MERGEMUTECTSTATS {
         'quay.io/biocontainers/gatk4:4.4.0.0--py36hdfd78af_0' }"
 
     input:
-    tuple val(meta), path(stats)
+    tuple val(meta), path(stats, stageAs: "stats.stats"), path(stats2, stageAs: "stat_shifted.stats")
+
 
     output:
     tuple val(meta), path("*.vcf.gz.stats"), emit: stats
@@ -30,7 +31,8 @@ process GATK4_MERGEMUTECTSTATS {
     }
     """
     gatk --java-options "-Xmx${avail_mem}M" MergeMutectStats \\
-        $input_list \\
+        -stats stats.stats \\
+	-stats stat_shifted.stats \\
         --output ${prefix}.vcf.gz.stats \\
         --tmp-dir . \\
         $args

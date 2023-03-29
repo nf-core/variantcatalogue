@@ -30,10 +30,10 @@ process BCFTOOLS_NORM {
     """
     bcftools norm \\
         --fasta-ref ${fasta} \\
-        --output ${prefix}.${extension}\\
+        --output ${prefix}_norm.${extension}\\
         $args \\
         --threads $task.cpus \\
-        ${vcf}
+        $vcf
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

@@ -13,6 +13,7 @@ process HAPLOCHECK {
     output:
     tuple val(meta), path("*.txt") , emit: txt
     tuple val(meta), path("*.html"), emit: html
+    tuple val(meta), path("$meta.id"), emit: haplocheck
     path "versions.yml"            , emit: versions
 
     when:

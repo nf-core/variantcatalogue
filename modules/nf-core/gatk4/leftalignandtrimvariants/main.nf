@@ -36,7 +36,7 @@ process GATK4_LEFTALIGNANDTRIMVARIANTS {
         LeftAlignAndTrimVariants \\
         $interval_command \\
         --variant $vcf \\
-        --output ${prefix}.vcf.gz \\
+        --output ${prefix}_filtered.vcf.gz \\
         --reference $fasta \\
         --tmp-dir . \\
         $args
