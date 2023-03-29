@@ -40,10 +40,23 @@ B. SNV/Indel subworkflow
 7. Annotation ([`VEP`](https://useast.ensembl.org/info/docs/tools/vep/index.html))
 
 C. Mitochondrial Subworkflow
-Will be included soon
+1. Index the mitochondrial reference genome ([`BWA index`](https://bio-bwa.sourceforge.net/bwa.shtml))
+2. Index the shifted mitochondrial reference genome ([`BWA index`](https://bio-bwa.sourceforge.net/bwa.shtml))
+3. Extract the reads mapping to the MT chromosome ([`GATK`](https://gatk.broadinstitute.org))
+4. Revert the sam to a fastq file ([`GATK`](https://gatk.broadinstitute.org))
+5. Align the reads against the mitochondrial reference genome ([`BWA mem`](https://bio-bwa.sourceforge.net/bwa.shtml))
+6. Align the reads against the shifted mitochondrial reference genome ([`BWA mem`](https://bio-bwa.sourceforge.net/bwa.shtml))
+7. Index the aligned bam files ([`Samtools index`](http://www.htslib.org))
+8. Mark duplicates ([`GATK`](https://gatk.broadinstitute.org))
+9. Colect HS metrics ([`Picard`](https://broadinstitute.github.io/picard/))
+10. Call variants with Mutect2 ([`GATK`](https://gatk.broadinstitute.org))
+11. Liftover the variants mapped against the shifted reference genome ([`GATK`](https://gatk.broadinstitute.org))
+12. Merge the VCFs files ([`GATK`](https://gatk.broadinstitute.org))
+13. Variant QC and frequency calculation ([`Hail`](https://hail.is))
+
 
 D. Structural varaint subworkflow
-Will be included soon
+May be included soon
 
 
 ## Quick Start
