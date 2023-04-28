@@ -4,7 +4,6 @@
     nf-core/variantcatalogue
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Github : https://github.com/nf-core/variantcatalogue
-
     Website: https://nf-co.re/variantcatalogue
     Slack  : https://nfcore.slack.com/channels/variantcatalogue
 ----------------------------------------------------------------------------------------
