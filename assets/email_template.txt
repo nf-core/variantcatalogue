@@ -4,7 +4,7 @@
   |\\ | |__  __ /  ` /  \\ |__) |__         }  {
   | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
                                         `._,._,'
-  nf-core/variantcatalogue v${version}
+  nf-core/variantcatalogue ${version}
 ----------------------------------------------------
 Run Name: $runName
 
