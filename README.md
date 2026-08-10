@@ -68,7 +68,7 @@ May be included soon
 3. Download the pipeline and test it on a minimal dataset with a simple three lines command:
 
    ```
-   wget https://github.com/scorreard/Variant_catalogue_pipeline/blob/main/testdata/reference/hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa.gz?raw=true
+   wget https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/main/testdata/reference/hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa.gz
    gzip -d hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa.gz > hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa
    bash nextflow run nf-core/variantcatalogue -profile test,YOURPROFILE --outdir <OUTDIR>
    ```
